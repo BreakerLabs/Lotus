@@ -7,7 +7,6 @@
 #include <regex>
 #include <vector>
 
-
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
@@ -57,13 +56,13 @@ struct Type {
 
         if (type == "bool")
             return builder->getInt1Ty();
-        if (type == "i8" || type == "char")
+        if (type == "u8" || type == "i8" || type == "char")
             return builder->getInt8Ty();
-        if (type == "i16")
+        if (type == "u16" || type == "i16")
             return builder->getInt16Ty();
-        if (type == "i32")
+        if (type == "u32" || type == "i32")
             return builder->getInt32Ty();
-        if (type == "i64")
+        if (type == "u64" || type == "i64")
             return builder->getInt64Ty();
         if (type == "f32")
             return builder->getFloatTy();
@@ -76,6 +75,13 @@ struct Type {
     }
     [[nodiscard]] bool isSigned() const {
         return type != "u8" && type != "u16" && type != "u32" && type != "u64";
+    }
+    [[nodiscard]] Type toSigned() const {
+        if (type == "u8") return Type{"i8"};
+        if (type == "u16") return Type{"i16"};
+        if (type == "u32") return Type{"i32"};
+        if (type == "u64") return Type{"i64"};
+        return Type{type};
     }
     [[nodiscard]] bool isPointerType() const {
         return type.starts_with('*') || type.starts_with("*mut ");
@@ -127,10 +133,9 @@ struct Type {
     }
 };
 
-// helper function to get the llvm::Value* from an integer (since it might vary
-// in bit-width)
-static Type getIntegerType(uint64_t number,
-const std::unique_ptr<llvm::IRBuilder<>>& builder) {
+// helper function to get the llvm::Value* from an integer (since it can vary
+// in bit-width). Only used with positive numbers
+static Type getIntegerType(uint64_t number) {
     if (number <= 2147483647) {
         // limit for signed i32
         return Type{"i32"};
@@ -146,8 +151,8 @@ const std::unique_ptr<llvm::IRBuilder<>>& builder) {
     }
 }
 
-// helper function to get the llvm::Value* from an integer (since it might vary
-// in bit-width)
+// helper function to get the llvm::Value* from an integer (since it can vary
+// in bit-width). Only used with positive numbers
 static llvm::Value*
 getIntegerValue(uint64_t number,
 const std::unique_ptr<llvm::IRBuilder<>>& builder) {

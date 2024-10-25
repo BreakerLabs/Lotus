@@ -1,27 +1,28 @@
-fn plotBooleanGrid(arr1: [bool|5], arr2: [bool|5]) {
-    for mut i := 0; i < 5; i++ {
-        for mut j := 0; j < 5; j++ {
-            if arr1[i] && arr2[j] {
-                printf("# ");
-            } else if !arr1[i] && !arr2[j] {
-                printf("  ");
-            } else {
-                printf("* ");
-            }
-        }
-        printf("\n");
-    }
-}
-
 fn main() {
-    arr1: [bool|5] = bool[1, 0, 1, 1, 0];
-    arr2: [bool|5] = bool[0, 1, 0, 1, 1];
-    plotBooleanGrid(arr1, arr2);
-}
+    x: u32 = 10;
+    y: u32 = 20;
 
-// output:
-// * # * # #
-//   *   * *
-// * # * # #
-// * # * # #
-//   *   * *
+    printf("Initial values:\n");
+    printf("x: %u\n", x);
+    printf("y: %u\n", y);
+
+    sum: u32 = x + y;
+    difference1: u32 = y - x;
+    difference2: i32 = x - y;
+    product: u32 = x * y;
+    quotient: u32 = y / x;
+
+    printf("Results of operations:\n");
+    printf("Sum: %u\n", sum);
+    printf("Difference 1: %u\n", difference1);
+    printf("Difference 2: %u\n", difference2);
+    printf("Product: %u\n", product);
+    printf("Quotient: %u\n", quotient);
+
+    printf("Unsigned to signed conversion: %d\n", (- -x == 10) as i32);
+
+    mut overflow_test: u32 = 4294967295; // max value for u32
+    overflow_test = overflow_test + 1~u32; // wraps around to 0
+
+    printf("Overflow test (wrap around): %u\n", overflow_test);
+}

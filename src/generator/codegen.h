@@ -16,6 +16,7 @@
 
 #include "../parser/ast.h"
 #include "casting.h"
+#include "operators.h"
 #include "loopContext.h"
 
 
@@ -47,7 +48,7 @@ ASTInteger::codegen(const std::unique_ptr<llvm::LLVMContext>& ctx,
                     const std::unique_ptr<llvm::Module>& moduleLLVM) const {
     return std::make_unique<CodegenResult>(
         typeSystem::getIntegerValue(number, builder),
-        typeSystem::getIntegerType(number, builder));
+        typeSystem::getIntegerType(number));
 }
 
 std::unique_ptr<CodegenResult>
@@ -154,7 +155,7 @@ std::unique_ptr<CodegenResult> ASTBinaryOperator::codegen(
         return nullptr;
     }
     // get the resulting value and type
-    auto [resultValue, resultType] = casting::createBinaryOperation(
+    auto [resultValue, resultType] = operators::createBinaryOperation(
         leftResult->getValue(), rightResult->getValue(), leftResult->getType(),
         rightResult->getType(), operation, builder);
     return std::make_unique<CodegenResult>(resultValue, resultType);
@@ -197,6 +198,9 @@ std::unique_ptr<CodegenResult> ASTUnaryOperator::codegen(
         } else if (isIntegerOperation) {
             resultValue =
                 builder->CreateNeg(expressionResult->getValue(), "negtmp");
+            // if the "-" operation is used on an integer, the result should
+            // always be signed
+            resultType = resultType.toSigned();
         }
     } else if (operation == "+") {
         // does not change the value (but check if it is used with valid types
@@ -864,10 +868,12 @@ std::unique_ptr<CodegenResult> ASTVariableAssignment::codegen(
         resultType = rightExpressionResult->getType();
     } else {
         // get the resulting value and type
-        auto [resultValueTemp, resultTypeTemp] = casting::createBinaryOperation(
-            leftExpressionResult->getValue(), rightExpressionResult->getValue(),
-            leftExpressionResult->getType(), rightExpressionResult->getType(),
-            operation, builder);
+        auto [resultValueTemp, resultTypeTemp] =
+            operators::createBinaryOperation(leftExpressionResult->getValue(),
+                                             rightExpressionResult->getValue(),
+                                             leftExpressionResult->getType(),
+                                             rightExpressionResult->getType(),
+                                             operation, builder);
         resultValue = resultValueTemp;
         resultType = resultTypeTemp;
     }

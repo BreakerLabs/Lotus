@@ -51,6 +51,7 @@ add_executable(Lotus src/main.cpp
         ${FLEX_Lexer_OUTPUTS}
         src/generator/typeSystem.h
         src/generator/casting.h
+        src/generator/operators.h
 )
 
 # Ensures that llvm links against the correct libraries
