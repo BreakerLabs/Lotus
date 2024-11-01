@@ -2,6 +2,7 @@
 
 %{
 #include <cstdlib> // for std::atoi
+#include <cstdint> // for uint64_t
 #include <iostream>
 #include <chrono>
 
@@ -10,7 +11,7 @@
 
 #include "../diagnostics/lexer.h"
 
-uint64_t parseInt(const char* str) {
+std::uint64_t parseInt(const char* str) {
     try {
         return std::stoull(str);
     } catch (const std::out_of_range& e) {

@@ -2,9 +2,11 @@
 
 #pragma once
 
+#include <cstdint>
 #include <iostream>
 #include <memory>
 #include <vector>
+
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
@@ -29,10 +31,11 @@ enum CodegenResultType {
 // type to store parameter result in CodegenResult, since it has two fields
 struct ParamCodegenResult {
     std::string identifier;
-    typeSystem::Type type;
+    std::shared_ptr<typeSystem::Type> type;
     bool isMutable;
 
-    ParamCodegenResult(std::string identifier, const typeSystem::Type& type,
+    ParamCodegenResult(std::string identifier,
+                       const std::shared_ptr<typeSystem::Type>& type,
                        bool isMutable)
         : identifier(std::move(identifier)), type(type), isMutable(isMutable) {}
     ~ParamCodegenResult() = default;
@@ -44,11 +47,11 @@ struct CodegenResult {
     union {
         struct {
             llvm::Value* value;
-            typeSystem::Type type;
+            std::shared_ptr<typeSystem::Type> type;
         } rValue;
         struct {
             llvm::Value* value;
-            typeSystem::Type type;
+            std::shared_ptr<typeSystem::Type> type;
             llvm::Value* pointer;
             bool isMutable;
         } lValue;
@@ -58,10 +61,12 @@ struct CodegenResult {
     CodegenResultType resultType;
 
     // create an rValue with a value and type only
-    CodegenResult(llvm::Value* value, const typeSystem::Type& type)
+    CodegenResult(llvm::Value* value,
+                  const std::shared_ptr<typeSystem::Type>& type)
         : rValue(value, type), resultType(R_VALUE_CODEGEN_RESULT) {}
     // create an lValue with a value, type, pointer and isMutable
-    CodegenResult(llvm::Value* value, const typeSystem::Type& type,
+    CodegenResult(llvm::Value* value,
+                  const std::shared_ptr<typeSystem::Type>& type,
                   llvm::Value* pointer, bool isMutable)
         : lValue(value, type, pointer, isMutable),
           resultType(L_VALUE_CODEGEN_RESULT) {}
@@ -85,8 +90,8 @@ struct CodegenResult {
         return lValue.value;
     }
 
-    // is used to get the typeSystem::Type, of an lValue and rValue
-    [[nodiscard]] typeSystem::Type getType() const {
+    // is used to get the type, of an lValue and rValue
+    [[nodiscard]] const std::shared_ptr<typeSystem::Type>& getType() const {
         if (resultType == R_VALUE_CODEGEN_RESULT)
             return rValue.type;
         return lValue.type;
@@ -145,8 +150,10 @@ class AST {
                  const std::unique_ptr<llvm::Module>& moduleLLVM) const {
         // TODO(anyone): remove this hardcoded type for printf
         scopes::setFunctionData(
-            "printf", typeSystem::Type{"i32"},
-            {typeSystem::Type{"char"}.createPointerType(false)}, true);
+            "printf", std::make_shared<typeSystem::IntegerType>(32, true),
+            {std::make_shared<typeSystem::PointerType>(
+                std::make_shared<typeSystem::CharacterType>(), false)},
+            true);
 
         // codegen each node the vector
         for (ASTNode* node : rootNodes) {
@@ -182,10 +189,10 @@ class ASTVariableExpression : public ASTNode {
 };
 
 class ASTInteger : public ASTNode {
-    uint64_t number;
+    std::uint64_t number;
 
  public:
-    explicit ASTInteger(uint64_t number) : number(number) {}
+    explicit ASTInteger(std::uint64_t number) : number(number) {}
 
     void print(int depth) const override {
         std::cout << std::string(depth * 2, ' ') << "Integer: " << number

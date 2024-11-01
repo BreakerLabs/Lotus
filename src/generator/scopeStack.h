@@ -28,8 +28,8 @@ llvm::Type* type) {
 }
 
 struct FunctionData {
-    typeSystem::Type returnType;
-    std::vector<typeSystem::Type> parameterTypes;
+    std::shared_ptr<typeSystem::Type> returnType;
+    std::vector<std::shared_ptr<typeSystem::Type>> parameterTypes;
     bool isVarArg{};
 };
 
@@ -44,9 +44,10 @@ static FunctionData* getFunctionData(const std::string& identifier) {
 }
 
 // helper function to store the type for a function
-static void setFunctionData(const std::string& identifier,
-const typeSystem::Type& returnType,
-const std::vector<typeSystem::Type>& parameterTypes,
+static void setFunctionData(
+const std::string& identifier,
+const std::shared_ptr<typeSystem::Type>& returnType,
+const std::vector<std::shared_ptr<typeSystem::Type>>& parameterTypes,
 bool isVarArg = false) {
     functionTypes[identifier] = {returnType, parameterTypes, isVarArg};
 }
@@ -70,7 +71,7 @@ class CurrentFunction {
 
 struct AllocationData {
     llvm::AllocaInst* allocaInst{};
-    typeSystem::Type type;
+    std::shared_ptr<typeSystem::Type> type;
     bool isMutable{};
 };
 
@@ -93,7 +94,8 @@ static AllocationData* getAllocationData(const std::string& identifier) {
 // helper function to set a variable in the scopeStack
 static void setAllocationData(const std::string& identifier,
 llvm::AllocaInst* allocaInst,
-const typeSystem::Type& type, bool isMutable) {
+const std::shared_ptr<typeSystem::Type>& type,
+bool isMutable) {
     if (scopeStack.empty())
         scopeStack.emplace_back();
     scopeStack.back()[identifier] = {allocaInst, type, isMutable};
