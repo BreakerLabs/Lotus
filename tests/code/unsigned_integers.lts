@@ -1,0 +1,64 @@
+fn main() {
+    x: u32 = 10;
+    y: u32 = 20;
+
+    printf("Initial values:\n");
+    printf("x: %u\n", x);
+    printf("y: %u\n", y);
+
+    sum: u32 = x + y;
+    difference1: u32 = y - x;
+    difference2: i32 = x - y;
+    product: u32 = x * y;
+    quotient: u32 = y / x;
+
+    printf("Results of operations:\n");
+    printf("Sum: %u\n", sum);
+    printf("Difference 1: %u\n", difference1);
+    printf("Difference 2: %u\n", difference2);
+    printf("Product: %u\n", product);
+    printf("Quotient: %u\n", quotient);
+
+    printf("Unsigned to signed conversion: %d\n", (- -x == 10) as i32);
+
+    mut overflow_test: u32 = 4294967295; // max value for u32
+    overflow_test = overflow_test + 1~u32; // wraps around to 0
+
+    printf("Overflow test (wrap around): %u\n", overflow_test);
+
+    // testing pointer comparisons
+    s: *char = "abc";
+    s2: *char = "cba";
+    printf("s: %s\n", s);
+    printf("s2: %s\n", s2);
+    printf("s != s2: %d\n", (s != s2) as i32);
+
+    // testing boolean comparisons and casting
+    b: bool = true;
+    b2: bool = 1 < 2;
+    printf("b: %d\n", b~i32);
+    printf("b2: %d\n", b2~i32);
+    printf("b == b2: %d\n", (b == b2) as i32);
+
+    printf("%d\n", -(!false) ~ u32);
+}
+
+// output:
+// Initial values:
+// x: 10
+// y: 20
+// Results of operations:
+// Sum: 30
+// Difference 1: 10
+// Difference 2: 4294967286
+// Product: 200
+// Quotient: 2
+// Unsigned to signed conversion: 1
+// Overflow test (wrap around): 0
+// s: abc
+// s2: cba
+// s != s2: 1
+// b: 1
+// b2: 1
+// b == b2: 1
+// -1

@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <chrono>
+#include <cstdint>
 
 #include "./ast.h"
 #include "./wrappers.h" // for VectorWrapper and StringWrapper
@@ -22,7 +23,7 @@ std::unique_ptr<AST> ast;
 %define parse.error verbose
 
 %union {
-    uint64_t int_literal;
+    std::uint64_t int_literal;
     double float_literal;
     struct StringWrapper* str;
     char character;
