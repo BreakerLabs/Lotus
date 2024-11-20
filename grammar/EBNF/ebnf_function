@@ -1,3 +1,0 @@
-<fnDecl> ::= "fn" <id> "(" <args> ")" ";"
-           | "fn" <id> "(" <args> ")" "->" [<id> | <type>] ";"
-           
