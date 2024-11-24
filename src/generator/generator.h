@@ -54,6 +54,21 @@ class Generator {
             "printf", llvm::FunctionType::get(
                           builder->getInt32Ty(),
                           builder->getInt8Ty()->getPointerTo(), true));
+        moduleLLVM->getOrInsertFunction(
+            "scanf", llvm::FunctionType::get(
+                          builder->getInt32Ty(),
+                          builder->getInt8Ty()->getPointerTo(), true));
+        moduleLLVM->getOrInsertFunction(
+            "rand", llvm::FunctionType::get(
+                        builder->getInt32Ty(), false));
+        moduleLLVM->getOrInsertFunction(
+            "srand", llvm::FunctionType::get(
+                         builder->getVoidTy(),
+                         builder->getInt32Ty(), false));
+        moduleLLVM->getOrInsertFunction(
+            "time", llvm::FunctionType::get(
+                        builder->getInt64Ty(),
+                        builder->getInt64Ty()->getPointerTo(), false));
     }
 
     void saveModuleToFile(const std::string& filename) {

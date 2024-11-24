@@ -1,0 +1,23 @@
+fn main() {
+    x := 15f64;
+    printf("x: %f\n", x);
+
+    y := 18446744073709551615u64;
+    printf("y: %llu\n", y);
+
+    z := 10.4i32;
+    printf("z: %d\n", z);
+
+    a := 45_bool;
+    printf("a: %d\n", a~i32);
+
+    b := 65.9_char;
+    printf("b: %c\n", b);
+}
+
+// output:
+// x: 15.000000
+// y: 18446744073709551615
+// z: 10
+// a: 1
+// b: A

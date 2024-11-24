@@ -9,7 +9,6 @@
 #include <ranges>
 #include <vector>
 
-
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
@@ -47,6 +46,17 @@ std::unique_ptr<CodegenResult>
 ASTInteger::codegen(const std::unique_ptr<llvm::LLVMContext>& ctx,
                     const std::unique_ptr<llvm::IRBuilder<>>& builder,
                     const std::unique_ptr<llvm::Module>& moduleLLVM) const {
+    if (!typeSuffix.empty()) {
+        // create an integer and cast it to the type suffix
+        return std::make_unique<CodegenResult>(
+            casting::createCast(
+                builder->getInt64(number),
+                std::make_shared<typeSystem::IntegerType>(64, false),
+                typeSystem::createTypeFromString(typeSuffix), builder),
+            typeSystem::createTypeFromString(typeSuffix));
+    }
+
+    // figure out the correct integer value and type based on the number size
     return std::make_unique<CodegenResult>(
         typeSystem::getIntegerValue(number, builder),
         typeSystem::getIntegerType(number));
@@ -64,6 +74,17 @@ std::unique_ptr<CodegenResult>
 ASTFloat::codegen(const std::unique_ptr<llvm::LLVMContext>& ctx,
                   const std::unique_ptr<llvm::IRBuilder<>>& builder,
                   const std::unique_ptr<llvm::Module>& moduleLLVM) const {
+    if (!typeSuffix.empty()) {
+        // create a f64 and cast it to the typeSuffix
+        return std::make_unique<CodegenResult>(
+            casting::createCast(
+                llvm::ConstantFP::get(builder->getDoubleTy(), number),
+                std::make_shared<typeSystem::FloatingPointType>(64),
+                typeSystem::createTypeFromString(typeSuffix), builder),
+            typeSystem::createTypeFromString(typeSuffix));
+    }
+
+    // return a f64 if the type suffix is empty
     return std::make_unique<CodegenResult>(
         llvm::ConstantFP::get(builder->getDoubleTy(), number),
         std::make_shared<typeSystem::FloatingPointType>(64));

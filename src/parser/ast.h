@@ -3,10 +3,10 @@
 #pragma once
 
 #include <cstdint>
+#include <cstdlib>
 #include <iostream>
 #include <memory>
 #include <vector>
-
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
@@ -148,12 +148,29 @@ class AST {
     void codegen(const std::unique_ptr<llvm::LLVMContext>& ctx,
                  const std::unique_ptr<llvm::IRBuilder<>>& builder,
                  const std::unique_ptr<llvm::Module>& moduleLLVM) const {
-        // TODO(anyone): remove this hardcoded type for printf
+        // TODO(anyone): remove the hardcoded types for these functions
         scopes::setFunctionData(
             "printf", std::make_shared<typeSystem::IntegerType>(32, true),
             {std::make_shared<typeSystem::PointerType>(
                 std::make_shared<typeSystem::CharacterType>(), false)},
             true);
+
+        scopes::setFunctionData(
+            "scanf", std::make_shared<typeSystem::IntegerType>(32, true),
+            {std::make_shared<typeSystem::PointerType>(
+                std::make_shared<typeSystem::CharacterType>(), false)},
+            true);
+
+        scopes::setFunctionData(
+            "rand", std::make_shared<typeSystem::IntegerType>(32, true), {});
+
+        scopes::setFunctionData(
+            "srand", std::make_shared<typeSystem::VoidType>(),
+            {std::make_shared<typeSystem::IntegerType>(32, true)});
+
+        scopes::setFunctionData(
+            "time", std::make_shared<typeSystem::IntegerType>(64, true),
+            {std::make_shared<typeSystem::IntegerType>(64, true)});
 
         // codegen each node the vector
         for (ASTNode* node : rootNodes) {
@@ -190,13 +207,42 @@ class ASTVariableExpression : public ASTNode {
 
 class ASTInteger : public ASTNode {
     std::uint64_t number;
+    std::string typeSuffix;
 
  public:
     explicit ASTInteger(std::uint64_t number) : number(number) {}
 
+    explicit ASTInteger(std::string string) {
+        // remove any underscores
+        string.erase(std::remove(string.begin(), string.end(), '_'),
+                     string.end());
+
+        // get an iterator to the first char that is not a number
+        auto typeSuffixStartIterator =
+            std::find_if(string.begin(), string.end(),
+                         [](char c) { return !std::isdigit(c); });
+        try {
+            number = std::stoull(
+                std::string(string.begin(), typeSuffixStartIterator));
+        } catch (const std::out_of_range& e) {
+            generator::fatal_error(
+                std::chrono::high_resolution_clock::now(),
+                "Invalid type annotated integer literal",
+                "The integer value '" +
+                    std::string(string.begin(), typeSuffixStartIterator) +
+                    "' is to large");
+            return;
+        }
+        typeSuffix = std::string(typeSuffixStartIterator, string.end());
+    }
+
     void print(int depth) const override {
         std::cout << std::string(depth * 2, ' ') << "Integer: " << number
                   << '\n';
+        if (!typeSuffix.empty()) {
+            std::cout << std::string((depth + 1) * 2, ' ')
+                      << "Type suffix: " << typeSuffix << '\n';
+        }
     }
 
     [[nodiscard]] std::unique_ptr<CodegenResult>
@@ -224,12 +270,41 @@ class ASTBool : public ASTNode {
 
 class ASTFloat : public ASTNode {
     double number;
+    std::string typeSuffix;
 
  public:
     explicit ASTFloat(double number) : number(number) {}
 
+    explicit ASTFloat(std::string string) {
+        // remove any underscores
+        string.erase(std::remove(string.begin(), string.end(), '_'),
+                     string.end());
+
+        // get an iterator to the first char that is not a number or a dot
+        auto typeSuffixStartIterator =
+            std::find_if(string.begin(), string.end(),
+                         [](char c) { return !std::isdigit(c) && c != '.'; });
+        try {
+            number =
+                std::stod(std::string(string.begin(), typeSuffixStartIterator));
+        } catch (const std::out_of_range& e) {
+            generator::fatal_error(
+                std::chrono::high_resolution_clock::now(),
+                "Invalid type annotated floating point literal",
+                "The floating point value '" +
+                    std::string(string.begin(), typeSuffixStartIterator) +
+                    "' is to large");
+            return;
+        }
+        typeSuffix = std::string(typeSuffixStartIterator, string.end());
+    }
+
     void print(int depth) const override {
         std::cout << std::string(depth * 2, ' ') << "Float: " << number << '\n';
+        if (!typeSuffix.empty()) {
+            std::cout << std::string((depth + 1) * 2, ' ')
+                      << "Type suffix: " << typeSuffix << '\n';
+        }
     }
 
     [[nodiscard]] std::unique_ptr<CodegenResult>
