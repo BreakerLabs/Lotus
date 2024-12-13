@@ -396,16 +396,16 @@ static llvm::Value*
 getIntegerValue(std::uint64_t number,
 const std::unique_ptr<llvm::IRBuilder<>>& builder) {
     if (number <= 2147483647) {
-        // limit for signed i32
+        // limit for i32
         return builder->getInt32(number);
     } else if (number <= 9223372036854775807) {
-        // limit for signed i64
+        // limit for i64
         return builder->getInt64(number);
     } else {
         generator::fatal_error(
             std::chrono::high_resolution_clock::now(),
             "Invalid integer literal",
-            "The integer is to large to be represented as an integer");
+            "The integer value is to large to be represented as an integer");
         return nullptr;
     }
 }

@@ -32,6 +32,8 @@ invalid_character '[^']{2,}'
 empty_character ''
 integer_literal [0-9]+
 float_literal [0-9]*\.[0-9]+
+type_annotated_integer_literal {integer_literal}_?{type}
+type_annotated_float_literal {float_literal}_?{type}
 string \"[^"]*\"
 multi_line_comment \/\*(\n|.)*?\*\/
 one_line_comment \/\/.*
@@ -90,6 +92,8 @@ or or|\|\|
 "&" {return TOK_AMPERSAND;}
 {type} {yylval.str = new StringWrapper(yytext); return TOK_TYPE;}
 {identifier} {yylval.str = new StringWrapper(yytext); return TOK_IDENTIFIER;}
+{type_annotated_integer_literal} {yylval.str = new StringWrapper(yytext); return TOK_TYPE_ANNOTATED_INT_LITERAL;}
+{type_annotated_float_literal} {yylval.str = new StringWrapper(yytext); return TOK_TYPE_ANNOTATED_FLOAT_LITERAL;}
 {integer_literal} {yylval.int_literal = parseInt(yytext); return TOK_INT_LITERAL;}
 {float_literal} {yylval.float_literal = std::atof(yytext); return TOK_FLOAT_LITERAL;}
 {character} {yylval.character = yytext[1]; return TOK_CHAR_LITERAL;}
